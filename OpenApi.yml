@@ -1,0 +1,163 @@
+openapi: 3.0.3
+info:
+  title: kafka-processor api
+  description: order processing service — submit orders to kafka and query results from db
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: local dev server
+
+paths:
+  /orders:
+    get:
+      summary: list all processed orders
+      operationId: listOrders
+      responses:
+        "200":
+          description: list of processed orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderEntity"
+              example:
+                - orderId: "ORD-001"
+                  customerId: "CUST-A"
+                  productCode: "LAPTOP-PRO"
+                  quantity: 2
+                  totalAmount: 17000000.00
+                  currency: "IDR"
+                  status: "HIGH_VALUE"
+                  processedAt: "2024-01-15T10:30:00Z"
+
+    post:
+      summary: submit a single order to kafka
+      operationId: submitOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RawOrder"
+            example:
+              orderId: "ORD-001"
+              customerId: "CUST-A"
+              productCode: "LAPTOP-PRO"
+              quantity: 2
+              unitPrice: 8500000
+              currency: "IDR"
+      responses:
+        "202":
+          description: order accepted and submitted to kafka
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: string
+                  message:
+                    type: string
+              example:
+                orderId: "ORD-001"
+                message: "submitted"
+
+  /orders/demo/{n}:
+    post:
+      summary: generate n dummy orders for testing
+      operationId: generateDemoOrders
+      parameters:
+        - name: n
+          in: path
+          required: true
+          description: number of dummy orders to generate
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            example: 5
+      responses:
+        "202":
+          description: dummy orders submitted to kafka
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  submitted:
+                    type: integer
+              example:
+                submitted: 5
+
+components:
+  schemas:
+    RawOrder:
+      type: object
+      required:
+        - orderId
+        - customerId
+        - productCode
+        - quantity
+        - unitPrice
+      properties:
+        orderId:
+          type: string
+          description: unique order identifier
+          example: "ORD-001"
+        customerId:
+          type: string
+          example: "CUST-A"
+        productCode:
+          type: string
+          example: "LAPTOP-PRO"
+        quantity:
+          type: integer
+          minimum: 1
+          example: 2
+        unitPrice:
+          type: number
+          format: decimal
+          example: 8500000
+        currency:
+          type: string
+          description: 3-letter currency code. defaults to IDR if not provided
+          example: "IDR"
+          nullable: true
+
+    OrderEntity:
+      type: object
+      properties:
+        orderId:
+          type: string
+          example: "ORD-001"
+        customerId:
+          type: string
+          example: "CUST-A"
+        productCode:
+          type: string
+          example: "LAPTOP-PRO"
+        quantity:
+          type: integer
+          example: 2
+        totalAmount:
+          type: number
+          format: decimal
+          description: unitPrice * quantity
+          example: 17000000.00
+        currency:
+          type: string
+          example: "IDR"
+        status:
+          type: string
+          enum: [LOW_VALUE, NORMAL, HIGH_VALUE]
+          description: |
+            LOW_VALUE  = total < 100,000
+            NORMAL     = total >= 100,000
+            HIGH_VALUE = total >= 1,000,000
+          example: "HIGH_VALUE"
+        processedAt:
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00Z"

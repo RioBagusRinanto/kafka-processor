@@ -57,6 +57,33 @@ If you want to learn more about building native executables, please consult <htt
 
 - Messaging - Kafka Connector ([guide](https://quarkus.io/guides/kafka-getting-started)): Connect to Kafka with Reactive Messaging
 
+### submit an order
+
+```bash
+curl -X POST http://localhost:8080/orders \
+  -H "Content-Type: application/json" \
+  -d '{
+    "orderId": "ORD-001",
+    "customerId": "CUST-A",
+    "productCode": "LAPTOP-PRO",
+    "quantity": 2,
+    "unitPrice": 8500000,
+    "currency": "IDR"
+  }'
+```
+
+### generate dummy orders
+
+```bash
+curl -X POST http://localhost:8080/orders/demo/5
+```
+
+### list all orders
+
+```bash
+curl http://localhost:8080/orders
+```
+
 ## Provided Code
 
 ### Messaging codestart
