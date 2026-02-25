@@ -35,7 +35,6 @@ public class OrderEntity extends PanacheEntityBase {
     @Column(name = "processed_at", nullable = false)
     public Instant processedAt;
 
-    // Static factory — hindari constructor berantakan
     public static OrderEntity from(ProcessedOrder p) {
         var e = new OrderEntity();
         e.orderId     = p.orderId();
